@@ -10,12 +10,7 @@ class Member extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'surname',
-        'email',
-        'born',
-    ];
+    public $timestamps = false;
 
     public function assignedMemberTags(): HasMany
     {

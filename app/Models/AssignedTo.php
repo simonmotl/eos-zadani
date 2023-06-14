@@ -10,6 +10,8 @@ class AssignedTo extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);

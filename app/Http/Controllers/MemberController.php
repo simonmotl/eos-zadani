@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 
 class MemberController extends Controller
 {
@@ -28,7 +30,29 @@ class MemberController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make(
+            $request->all(),
+            [
+                "email" => ['string', 'required', Rule::unique('members')],
+            ],
+        );
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 401);
+        }
+
+        $member = new Member;
+        $member->name = $request->name;
+        $member->surname = $request->surname;
+        $member->email = $request->email;
+        $member->date_of_birth = $request->date_of_birth;
+        $result = $member->save();
+
+        if ($result) {
+            return ["Result" => "Data has been saved"];
+        }
+
+        return ["Result" => "Saving data failed"];
     }
 
     /**
