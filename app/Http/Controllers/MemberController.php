@@ -46,8 +46,8 @@ final class MemberController extends Controller
                 Member::MEMBER_NAME => ['string', 'required'],
                 Member::MEMBER_SURNAME => ['string', 'required'],
                 Member::MEMBER_DATE_OF_BIRTH => ['date', 'required', 'date_format:Y-m-d'],
-                'member_tags' => ['array', 'nullable'],
-                'member_tags.*' => 'exists:member_tags,id',
+                'member_tags_ids' => ['array', 'nullable'],
+                'member_tags_ids.*' => 'exists:member_tags,id',
             ],
         );
 
@@ -97,8 +97,8 @@ final class MemberController extends Controller
                 Member::MEMBER_NAME => 'string',
                 Member::MEMBER_SURNAME => 'string',
                 Member::MEMBER_DATE_OF_BIRTH => ['date', 'date_format:Y-m-d'],
-                'member_tags' => ['array', 'nullable'],
-                'member_tags.*' => 'exists:member_tags,id',
+                'member_tags_ids' => ['array', 'nullable'],
+                'member_tags_ids.*' => 'exists:member_tags,id',
             ],
         );
 
