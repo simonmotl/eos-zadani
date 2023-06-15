@@ -1,11 +1,13 @@
 <?php
 
+declare (strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AssignedTo extends Model
+final class AssignedTo extends Model
 {
     use HasFactory;
 

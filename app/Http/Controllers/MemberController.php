@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\AssignedTo;
@@ -9,7 +11,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
-class MemberController extends Controller
+final class MemberController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,9 +20,9 @@ class MemberController extends Controller
     {
         if (request()->has('showMemberTags')) {
             $members = Member::with('member_tags')->get();
-            return response()->json($members);
+        } else {
+            $members = Member::all();
         }
-        $members = Member::all();
         return response()->json($members);
     }
 
@@ -40,10 +42,10 @@ class MemberController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'email' => ['email', 'required', Rule::unique('members')],
-                'name' => ['string', 'required'],
-                'surname' => ['string', 'required'],
-                'date_of_birth' => ['date', 'required', 'date_format:Y-m-d'],
+                Member::MEMBER_EMAIL => ['email', 'required', Rule::unique('members')],
+                Member::MEMBER_NAME => ['string', 'required'],
+                Member::MEMBER_SURNAME => ['string', 'required'],
+                Member::MEMBER_DATE_OF_BIRTH => ['date', 'required', 'date_format:Y-m-d'],
                 'member_tags' => ['array', 'nullable'],
                 'member_tags.*' => 'exists:member_tags,id',
             ],
@@ -55,7 +57,7 @@ class MemberController extends Controller
 
         $member = Member::create($request->all());
         $member->member_tags()->attach($request->member_tags);
-        
+
         $member->load('member_tags');
         return response()->json($member);
     }
@@ -69,9 +71,6 @@ class MemberController extends Controller
             $foundMember = Member::with('member_tags')->findOrFail($member->id);
         } else {
             $foundMember = Member::find($member->id);
-        }
-        if (!$foundMember) {
-            return response()->json(['message' => 'Member not found'], 404);
         }
         return response()->json($foundMember);
     }
@@ -90,17 +89,14 @@ class MemberController extends Controller
     public function update(Request $request, Member $member)
     {
         $foundMember = Member::find($member->id);
-        if (!$foundMember) {
-            return response()->json(['message' => 'Member not found'], 404);
-        }
 
         $validator = Validator::make(
             $request->all(),
             [
-                'email' => ['email', Rule::unique('members')],
-                'name' => 'string',
-                'surname' => 'string',
-                'date_of_birth' => ['date', 'date_format:Y-m-d'],
+                Member::MEMBER_EMAIL => ['email', Rule::unique('members')],
+                Member::MEMBER_NAME => 'string',
+                Member::MEMBER_SURNAME => 'string',
+                Member::MEMBER_DATE_OF_BIRTH => ['date', 'date_format:Y-m-d'],
                 'member_tags' => ['array', 'nullable'],
                 'member_tags.*' => 'exists:member_tags,id',
             ],
@@ -123,12 +119,7 @@ class MemberController extends Controller
     public function destroy(Member $member)
     {
         $foundMember = Member::find($member->id);
-        if (!$foundMember) {
-            return response()->json(['message' => 'Member not found'], 404);
-        }
-
-        $member->delete();
-
+        $foundMember->delete();
         return response()->json(['message' => 'Member deleted']);
     }
 }
