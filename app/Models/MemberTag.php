@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class MemberTag extends Model
 {
@@ -12,8 +12,8 @@ class MemberTag extends Model
 
     public $timestamps = false;
 
-    public function assignedToMembers(): HasMany
+    public function members(): BelongsToMany
     {
-        return $this->hasMany(AssignedTo::class);
+        return $this->belongsToMany(Member::class, 'assigned_tos');
     }
 }

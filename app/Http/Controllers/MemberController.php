@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssignedTo;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class MemberController extends Controller
 {
@@ -14,7 +16,12 @@ class MemberController extends Controller
      */
     public function index()
     {
-        return Member::all();
+        if (request()->has('showMemberTags')) {
+            $members = Member::with('member_tags')->get();
+            return response()->json($members);
+        }
+        $members = Member::all();
+        return response()->json($members);
     }
 
     /**
@@ -33,7 +40,12 @@ class MemberController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                "email" => ['string', 'required', Rule::unique('members')],
+                'email' => ['email', 'required', Rule::unique('members')],
+                'name' => ['string', 'required'],
+                'surname' => ['string', 'required'],
+                'date_of_birth' => ['date', 'required', 'date_format:Y-m-d'],
+                'member_tags' => ['array', 'nullable'],
+                'member_tags.*' => 'exists:member_tags,id',
             ],
         );
 
@@ -41,18 +53,11 @@ class MemberController extends Controller
             return response()->json($validator->errors(), 401);
         }
 
-        $member = new Member;
-        $member->name = $request->name;
-        $member->surname = $request->surname;
-        $member->email = $request->email;
-        $member->date_of_birth = $request->date_of_birth;
-        $result = $member->save();
-
-        if ($result) {
-            return ["Result" => "Data has been saved"];
-        }
-
-        return ["Result" => "Saving data failed"];
+        $member = Member::create($request->all());
+        $member->member_tags()->attach($request->member_tags);
+        
+        $member->load('member_tags');
+        return response()->json($member);
     }
 
     /**
@@ -60,7 +65,15 @@ class MemberController extends Controller
      */
     public function show(Member $member)
     {
-        //
+        if (request()->has('showMemberTags')) {
+            $foundMember = Member::with('member_tags')->findOrFail($member->id);
+        } else {
+            $foundMember = Member::find($member->id);
+        }
+        if (!$foundMember) {
+            return response()->json(['message' => 'Member not found'], 404);
+        }
+        return response()->json($foundMember);
     }
 
     /**
@@ -76,7 +89,32 @@ class MemberController extends Controller
      */
     public function update(Request $request, Member $member)
     {
-        //
+        $foundMember = Member::find($member->id);
+        if (!$foundMember) {
+            return response()->json(['message' => 'Member not found'], 404);
+        }
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'email' => ['email', Rule::unique('members')],
+                'name' => 'string',
+                'surname' => 'string',
+                'date_of_birth' => ['date', 'date_format:Y-m-d'],
+                'member_tags' => ['array', 'nullable'],
+                'member_tags.*' => 'exists:member_tags,id',
+            ],
+        );
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 401);
+        }
+
+        $foundMember->update($request->all());
+        $foundMember->member_tags()->sync($request->member_tags);
+
+        $foundMember->load('member_tags');
+        return response()->json($foundMember);
     }
 
     /**
@@ -84,6 +122,13 @@ class MemberController extends Controller
      */
     public function destroy(Member $member)
     {
-        //
+        $foundMember = Member::find($member->id);
+        if (!$foundMember) {
+            return response()->json(['message' => 'Member not found'], 404);
+        }
+
+        $member->delete();
+
+        return response()->json(['message' => 'Member deleted']);
     }
 }
