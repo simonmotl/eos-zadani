@@ -1,57 +1,25 @@
-## REST API
+# JSON REST API - documentation
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Introduction
+This repository contains simple API for member administration made in PHP with Laravel framework. It means creating, reading, updating and deleting data about members from database. Program uses simple SQlite database and JSON for exchanging data. In this documentation are informations about important parts like models, migrations and resource controller made for creating this API.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Models
+There are three models. The main model is Member which has five attributes including name, surname, email, date_of_birth and ID. There is constant for each attribute for more code clarity. There is also defined relationship with model MemberTag BelongsToMany because every member can have multiple member tags. The same relationship is defined in MemberTag model because every tag can be assigned to multiple people. This model has only ID and name attributes. So there is M:N relationship between Member and MemberTag. That is why was created third model AssignedTo which contains foreign keys of Member and MemberTag that connects them. These models where created as tables in database using migrations.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Seeder 
+For purpose of this API, data were inserted into MemberTag table by using database seeder MemberTagSeeder. There are five MemberTags that have names from IT area.
 
-## Learning Laravel
+## Resource Controller
+The most important part of this API is MemberController that performs operations with database. To handle requirements from controller there was created a Route.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### GET method
+It has basic endpoints like index and show for reading from database. Index writes out all the members in database and show writes out one member based on member ID as input parameter. If inserted parameter is not in the database, program will throw exception with error message and returns code 404. There is also optional parameter, if it's "showMemberTags" program will write out members/member with all assigned tags.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### POST method
+The store function serves for inserting data. It uses validator for checking incoming data. All input items have to have the right type and every each of them has to be filled except member_tags_ids array that is optional beacause Member can exist without MemberTag. Validator also checks if email is valid and unique and if date is in correct format. For assigning membertags there is function attach() that creates new item in AssignedTo table. If input data violates some of the validator rules, program returns error message and code 401. If validation passes, the new member with his attributes is returned.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### PUT method
+The update function is almost same as store. The main difference is that input items are just optional and instead of using function attach(), there is function sync() that updates AssignedTo table.
 
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### DELETE method
+The destroy function basically finds and writes out the member based on input value - member id. If it's not in the database, program returns error message and 404 code.
